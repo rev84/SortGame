@@ -241,17 +241,22 @@ Game = (function() {
   };
 
   Game.gameover = function() {
-    var alreadySortedBodySpan, answerArray, answerChar, answerIndex, bodySpanIndex, j, l, offset, ref, ref1, results;
+    var alreadySortedAnswerSpan, alreadySortedBodySpan, answerArray, answerChar, answerIndex, bodySpanIndex, j, l, offset, ref, ref1, results;
     answerArray = Game.solution.split('');
     alreadySortedBodySpan = [];
+    alreadySortedAnswerSpan = [];
     for (answerIndex = j = 0, ref = Game.answerIndexes.length; 0 <= ref ? j < ref : j > ref; answerIndex = 0 <= ref ? ++j : --j) {
       bodySpanIndex = Game.answerIndexes[answerIndex];
       if (answerArray[answerIndex] === Game.bodySpan[bodySpanIndex].html()) {
         alreadySortedBodySpan.push(bodySpanIndex);
+        alreadySortedAnswerSpan.push(answerIndex);
       }
     }
     results = [];
     for (answerIndex = l = 0, ref1 = answerArray.length; 0 <= ref1 ? l < ref1 : l > ref1; answerIndex = 0 <= ref1 ? ++l : --l) {
+      if (Utl.inArray(answerIndex, alreadySortedAnswerSpan)) {
+        continue;
+      }
       answerChar = answerArray[answerIndex];
       results.push((function() {
         var o, ref2, results1;

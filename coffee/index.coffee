@@ -182,12 +182,15 @@ class Game
     # 正解に並べ替える
     answerArray = @solution.split('')
     alreadySortedBodySpan = []
+    alreadySortedAnswerSpan = []
     # 既に正しい場所にあるbodySpanは無視する
     for answerIndex in [0...@answerIndexes.length]
       bodySpanIndex = @answerIndexes[answerIndex]
       if answerArray[answerIndex] is @bodySpan[bodySpanIndex].html()
         alreadySortedBodySpan.push bodySpanIndex
+        alreadySortedAnswerSpan.push answerIndex
     for answerIndex in [0...answerArray.length]
+      continue if Utl.inArray answerIndex, alreadySortedAnswerSpan
       answerChar = answerArray[answerIndex]
       for bodySpanIndex in [0...@bodySpan.length]
         continue if Utl.inArray bodySpanIndex, alreadySortedBodySpan
