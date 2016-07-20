@@ -162,7 +162,7 @@ class Game
       $('#timer').html('0.0')
       @stopTimer()
       @se 'mistake'
-      # 全文字を解答に送る
+      setTimeout @gameover, 1000
     # 時間切れではない
     else
       sec = Math.abs(Math.floor(@restSec/1000))

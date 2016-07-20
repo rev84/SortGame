@@ -217,7 +217,8 @@ Game = (function() {
       Game.clickable(false);
       $('#timer').html('0.0');
       Game.stopTimer();
-      return Game.se('mistake');
+      Game.se('mistake');
+      return setTimeout(Game.gameover, 1000);
     } else {
       sec = Math.abs(Math.floor(Game.restSec / 1000));
       float = Math.abs(Math.floor(Game.restSec / 100) % 10);
