@@ -3,14 +3,42 @@ var Game, Utl;
 
 $().ready(function() {
   $(window).on('resize', Game.alignSpan);
-  return $(window).on('contextmenu', function() {
+  $(window).on('contextmenu', function() {
+    if (!Game.isClickable) {
+      return false;
+    }
     Game.answer2character();
     return false;
   });
+  $(window).on('click', function() {
+    if (Game.isNextQuestionWait) {
+      Game.isNextQuestionWait = false;
+      return Game.putQuestion();
+    }
+  });
+  return Game.startGame();
 });
 
 Game = (function() {
   function Game() {}
+
+  Game.MOVE_MSEC = 200;
+
+  Game.LIMIT_SEC = 30;
+
+  Game.UPDATE_MSEC = 100;
+
+  Game.questions = [];
+
+  Game.isClickable = false;
+
+  Game.isNextQuestionWait = false;
+
+  Game.timer = false;
+
+  Game.restSec = null;
+
+  Game.level = null;
 
   Game.solution = [];
 
@@ -32,34 +60,51 @@ Game = (function() {
     }
     targetIndex = Game.answerIndexes.length;
     offset = Game.answerSpan[targetIndex].offset();
-    Game.bodySpan[myIndex].animate(offset, 200);
+    Game.bodySpan[myIndex].animate(offset, Game.MOVE_MSEC);
     Game.answerIndexes.push(myIndex);
     if (Game.answerSpan.length === Game.answerIndexes.length) {
       return console.log(Game.judge());
+    } else {
+      return Game.se('push');
     }
   };
 
   Game.answer2character = function() {
     var myIndex, offset, targetIndex;
+    if (Game.solution.length === Game.answerIndexes.length) {
+      return;
+    }
     myIndex = Game.answerIndexes.length - 1;
     if (myIndex < 0) {
       return;
     }
     targetIndex = Game.answerIndexes[myIndex];
     offset = Game.characterSpan[targetIndex].offset();
-    Game.bodySpan[targetIndex].animate(offset, 200);
-    return Game.answerIndexes.pop();
+    Game.bodySpan[targetIndex].animate(offset, Game.MOVE_MSEC);
+    Game.answerIndexes.pop();
+    return Game.se('cancel');
   };
 
   Game.judge = function() {
     var index, j, len, ref, result;
+    this.stopTimer();
     result = '';
     ref = this.answerIndexes;
     for (j = 0, len = ref.length; j < len; j++) {
       index = ref[j];
       result += this.bodySpan[index].html();
     }
-    return result === this.solution;
+    if (result === this.solution) {
+      this.se('correct');
+      return setTimeout(((function(_this) {
+        return function() {
+          return _this.isNextQuestionWait = true;
+        };
+      })(this)), 1000);
+    } else {
+      this.se('mistake');
+      return setTimeout(this.gameover, 1000);
+    }
   };
 
   Game.clear = function() {
@@ -92,7 +137,8 @@ Game = (function() {
     this.description = null;
     $('#description').html('');
     $('#character').html('');
-    return $('#answer').html('');
+    $('#answer').html('');
+    return $('#timer').html('');
   };
 
   Game.alignSpan = function() {
@@ -111,12 +157,24 @@ Game = (function() {
     });
   };
 
+  Game.startGame = function() {
+    this.questions = Utl.shuffle(JSON.parse(JSON.stringify(QUESTIONS)));
+    return this.putQuestion();
+  };
+
+  Game.putQuestion = function() {
+    var nextQuestion;
+    nextQuestion = this.questions.pop();
+    return this.initQuestion(nextQuestion.description, nextQuestion.word);
+  };
+
   Game.initQuestion = function(description, answer) {
-    var answerArray, answerSpan, bodySpan, chara, characterSpan, index, j, l, len, ref, results;
+    var answerArray, answerSpan, bodySpan, chara, characterSpan, index, j, l, len, ref;
     this.description = description;
     this.solution = answer;
     answerArray = Utl.shuffle(answer.split(''));
     this.clear();
+    $('#description').html(description);
     for (j = 0, len = answerArray.length; j < len; j++) {
       chara = answerArray[j];
       characterSpan = $('<span>').addClass('character_base character_empty').html('&nbsp');
@@ -126,15 +184,92 @@ Game = (function() {
       this.characterSpan.push(characterSpan);
       this.answerSpan.push(answerSpan);
     }
-    results = [];
     for (index = l = 0, ref = answerArray.length; 0 <= ref ? l < ref : l > ref; index = 0 <= ref ? ++l : --l) {
       bodySpan = $('<span>').addClass('character_base character_main').data('index', index).html(answerArray[index]);
       bodySpan.on('click', function() {
+        if (!Game.isClickable) {
+          return;
+        }
         return Game.character2answer(this);
       });
       $('body').append(bodySpan);
       bodySpan.offset(this.characterSpan[index].offset());
-      results.push(this.bodySpan.push(bodySpan));
+      this.bodySpan.push(bodySpan);
+    }
+    this.startTimer();
+    return this.clickable(true);
+  };
+
+  Game.clickable = function(bool) {
+    return this.isClickable = !!bool;
+  };
+
+  Game.startTimer = function() {
+    this.stopTimer();
+    this.restSec = this.LIMIT_SEC * 1000;
+    return this.timer = setInterval(this.updateTimer, this.UPDATE_MSEC);
+  };
+
+  Game.updateTimer = function() {
+    var float, sec;
+    Game.restSec -= Game.UPDATE_MSEC;
+    if (Game.restSec <= 0) {
+      Game.clickable(false);
+      $('#timer').html('0.0');
+      Game.stopTimer();
+      return Game.se('mistake');
+    } else {
+      sec = Math.abs(Math.floor(Game.restSec / 1000));
+      float = Math.abs(Math.floor(Game.restSec / 100) % 10);
+      return $('#timer').html('' + sec + '.' + float);
+    }
+  };
+
+  Game.stopTimer = function() {
+    if (this.timer !== false) {
+      clearInterval(this.timer);
+    }
+    return this.timer = false;
+  };
+
+  Game.se = function(filename) {
+    var aud;
+    aud = new Audio('./audio/' + filename + '.mp3');
+    aud.volume = 0.5;
+    return aud.play();
+  };
+
+  Game.gameover = function() {
+    var alreadySortedBodySpan, answerArray, answerChar, answerIndex, bodySpanIndex, j, l, offset, ref, ref1, results;
+    answerArray = Game.solution.split('');
+    alreadySortedBodySpan = [];
+    for (answerIndex = j = 0, ref = Game.answerIndexes.length; 0 <= ref ? j < ref : j > ref; answerIndex = 0 <= ref ? ++j : --j) {
+      bodySpanIndex = Game.answerIndexes[answerIndex];
+      if (answerArray[answerIndex] === Game.bodySpan[bodySpanIndex].html()) {
+        alreadySortedBodySpan.push(bodySpanIndex);
+      }
+    }
+    results = [];
+    for (answerIndex = l = 0, ref1 = answerArray.length; 0 <= ref1 ? l < ref1 : l > ref1; answerIndex = 0 <= ref1 ? ++l : --l) {
+      answerChar = answerArray[answerIndex];
+      results.push((function() {
+        var o, ref2, results1;
+        results1 = [];
+        for (bodySpanIndex = o = 0, ref2 = this.bodySpan.length; 0 <= ref2 ? o < ref2 : o > ref2; bodySpanIndex = 0 <= ref2 ? ++o : --o) {
+          if (Utl.inArray(bodySpanIndex, alreadySortedBodySpan)) {
+            continue;
+          }
+          if (answerChar === this.bodySpan[bodySpanIndex].html()) {
+            offset = this.answerSpan[answerIndex].offset();
+            this.bodySpan[bodySpanIndex].animate(offset, this.MOVE_MSEC).addClass('character_notice');
+            alreadySortedBodySpan.push(bodySpanIndex);
+            break;
+          } else {
+            results1.push(void 0);
+          }
+        }
+        return results1;
+      }).call(Game));
     }
     return results;
   };
