@@ -1,12 +1,13 @@
 $().ready ->
-  $(window).on 'resize', Env.onResize
+  $(window).on 'resize', Game.alignSpan
   $(window).on 'contextmenu', ->
-    Env.answer2character()
+    Game.answer2character()
     false
 
 
-class Env
+class Game
   @solution = []
+  @description = null
   @answerIndexes = []
 
   @characterSpan = []
@@ -20,8 +21,12 @@ class Env
     targetIndex = @answerIndexes.length
 
     offset = @answerSpan[targetIndex].offset()
-    @bodySpan[myIndex].animate(offset)
+    @bodySpan[myIndex].animate(offset, 200)
     @answerIndexes.push myIndex
+
+    # 答えが満たされた場合
+    if @answerSpan.length is @answerIndexes.length
+      console.log @judge()
 
   # 解答→文字パレット
   @answer2character:()=>
@@ -30,9 +35,14 @@ class Env
     targetIndex = @answerIndexes[myIndex]
 
     offset = @characterSpan[targetIndex].offset()
-    @bodySpan[targetIndex].animate(offset)
+    @bodySpan[targetIndex].animate(offset, 200)
     @answerIndexes.pop()
 
+  @judge:->
+    result = ''
+    for index in @answerIndexes
+      result += @bodySpan[index].html()
+    result is @solution
 
   @clear:->
     for s in @characterSpan
@@ -44,37 +54,44 @@ class Env
     @characterSpan = []
     @answerSpan = []
     @bodySpan = []
+    @answerIndexes = []
+    @description = null
+    $('#description').html('')
     $('#character').html('')
     $('#answer').html('')
 
-  @onResize:=>
-    for index in @answerIndexes
-      @bodySpan[index].offset(@answerSpan[index].offset()) if index isnt null
-    for index in @characterIndexes
-      @bodySpan[index].offset(@characterSpan[index].offset()) if index isnt null
+  # 整列
+  @alignSpan:=>
+    for answerIndex in [0...@answerIndexes.length]
+      bodyIndex = @answerIndexes[answerIndex]
+      @bodySpan[bodyIndex].offset(Game.answerSpan[answerIndex].offset())
+    $('span.character_main').each ->
+      index = $(this).data('index')
+      return if 0 <= Game.answerIndexes.indexOf(index)
+      Game.bodySpan[index].offset(Game.characterSpan[index].offset())
 
 
-initQuestion = (description, answer)->
-  Env.description = description
-  Env.solution = answer
+  @initQuestion:(description, answer)->
+    @description = description
+    @solution = answer
 
-  answerArray = Utl.shuffle(answer.split(''))
+    answerArray = Utl.shuffle(answer.split(''))
 
-  Env.clear()
-  for chara in answerArray
-    characterSpan = $('<span>').addClass('character_base character_empty').html('&nbsp')
-    answerSpan = $('<span>').addClass('character_base character_empty').html('&nbsp')
+    @clear()
+    for chara in answerArray
+      characterSpan = $('<span>').addClass('character_base character_empty').html('&nbsp')
+      answerSpan = $('<span>').addClass('character_base character_empty').html('&nbsp')
 
-    $('#character').append(characterSpan)
-    $('#answer').append(answerSpan)
+      $('#character').append(characterSpan)
+      $('#answer').append(answerSpan)
 
-    Env.characterSpan.push characterSpan
-    Env.answerSpan.push answerSpan
+      @characterSpan.push characterSpan
+      @answerSpan.push answerSpan
 
-  for index in [0...answerArray.length]
-    bodySpan = $('<span>').addClass('character_base character_main').data('index', index).html(answerArray[index])
-    bodySpan.on 'click', ->
-      Env.character2answer(@)
-    $('body').append(bodySpan)
-    bodySpan.offset(Env.characterSpan[index].offset())
-    Env.bodySpan.push bodySpan
+    for index in [0...answerArray.length]
+      bodySpan = $('<span>').addClass('character_base character_main').data('index', index).html(answerArray[index])
+      bodySpan.on 'click', ->
+        Game.character2answer(@)
+      $('body').append(bodySpan)
+      bodySpan.offset(@characterSpan[index].offset())
+      @bodySpan.push bodySpan
