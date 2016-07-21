@@ -1,5 +1,10 @@
-div {
-  text-align:center;
+div.center {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
 }
 div.abs {
   position:absolute;
@@ -40,13 +45,6 @@ div#description {
   position:absolute;
   background: #ffffff;
   border: 1px solid #000000;
-
-  display: -webkit-flex;
-  display: flex;
-  -webkit-align-items: center;
-  align-items: center;
-  -webkit-justify-content: center;
-  justify-content: center;
 }
 div#description:after, div#description:before {
   left: 100%;
