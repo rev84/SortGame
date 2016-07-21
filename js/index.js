@@ -16,7 +16,8 @@ $().ready(function() {
       return Game.putQuestion();
     }
   });
-  return Game.startGame();
+  Game.startGame();
+  return Game.alignSpan();
 });
 
 Game = (function() {

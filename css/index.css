@@ -8,7 +8,7 @@ div.center {
 }
 div.abs {
   position:absolute;
-  border: 1px solid #000000;
+  /*border: 1px solid #000000;*/
 }
 div.container {
   position:relative;

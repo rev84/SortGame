@@ -9,6 +9,7 @@ $().ready ->
       Game.isNextQuestionWait = false
       Game.putQuestion()
   Game.startGame()
+  Game.alignSpan()
 
 class Game
   @MOVE_MSEC = 200
