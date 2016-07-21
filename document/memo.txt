@@ -7,3 +7,10 @@ http://pocket-se.info/
 * mistake.mp3
 フリーBGM・音楽素材MusMus
 http://musmus.main.jp/
+
+[画像素材]
+* frame.png
+http://sozai-good.com/archives/28430
+
+* frame_character.jpg
+https://azukichi.net/frame.html

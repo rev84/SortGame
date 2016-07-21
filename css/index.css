@@ -79,10 +79,10 @@ img#description_icon {
 
 
 span.character_base {
-  border:1px solid #0000ff;
+  /*border:1px solid #0000ff;*/
   font-size:50px;
-  width:60px;
-  height:60px;
+  width:70px;
+  height:70px;
   user-select: none;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -91,12 +91,18 @@ span.character_base {
   text-align: center;
   vertical-align: middle;
   cursor:default;
+  background-size:contain;
+  background-repeat: no-repeat;
 }
 span.character_empty {
+  background-image: url('../image/frame_empty.png');
+  z-index:1000;
 }
 span.character_main {
+  background-image: url('../image/frame_character.jpg');
   color:#000000;
   position:absolute;
+  z-index:2000;
 }
 span.character_notice {
   color:#ff0000 !important;
